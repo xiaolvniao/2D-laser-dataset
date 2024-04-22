@@ -1,0 +1,17 @@
+# depslib dependency file v1.0
+1713768783 source:c:\users\89357\desktop\clustering-based map fusion_c++\traditional_methods\main.cpp
+	<vector>
+	<tuple>
+	<numeric>
+	<opencv2/opencv.hpp>
+	<opencv2/xfeatures2d.hpp>
+	<opencv2/imgproc.hpp>
+	<boost/geometry.hpp>
+	<boost/geometry/geometries/point_xy.hpp>
+	<boost/geometry/geometries/polygon.hpp>
+	<boost/geometry/io/wkt/wkt.hpp>
+	<list>
+	<boost/assign/list_of.hpp>
+	<boost/geometry/geometries/box.hpp>
+	<boost/geometry/algorithms/within.hpp>
+

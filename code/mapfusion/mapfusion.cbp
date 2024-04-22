@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="mapfusion" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/mapfusion" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/mapfusion" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="../maps/DM/DM_5.pgm" />
+		<Unit filename="../maps/DM/DM_9.pgm" />
+		<Unit filename="../maps/aces/aces_3.pgm" />
+		<Unit filename="../maps/aces/aces_4.pgm" />
+		<Unit filename="../maps/aces/aces_5.pgm" />
+		<Unit filename="../maps/aces/aces_7.pgm" />
+		<Unit filename="../maps/aces/aces_71.pgm" />
+		<Unit filename="../maps/intel/global_10.pgm" />
+		<Unit filename="../maps/intel/global_5.pgm" />
+		<Unit filename="../maps/intel/intel_10.pgm" />
+		<Unit filename="../maps/intel/intel_3.pgm" />
+		<Unit filename="../maps/intel/intel_5.pgm" />
+		<Unit filename="../maps/intel/intel_51.pgm" />
+		<Unit filename="../maps/intel/intel_7.pgm" />
+		<Unit filename="ClusterAnalysis.cpp" />
+		<Unit filename="ClusterAnalysis.h" />
+		<Unit filename="DataPoint.cpp" />
+		<Unit filename="DataPoint.h" />
+		<Unit filename="GridCell.cpp" />
+		<Unit filename="GridCell.h" />
+		<Unit filename="Matrix.h" />
+		<Unit filename="Toolfunction.cpp" />
+		<Unit filename="Toolfunction.h" />
+		<Unit filename="TreeNode.cpp" />
+		<Unit filename="TreeNode.h" />
+		<Unit filename="TreeNodeVec.cpp" />
+		<Unit filename="TreeNodeVec.h" />
+		<Unit filename="main.cpp" />
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>

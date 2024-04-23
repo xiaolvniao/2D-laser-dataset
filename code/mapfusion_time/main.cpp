@@ -28,10 +28,10 @@ void detectAKAZEKeypointsAndDescriptors(const Mat& image, vector<KeyPoint>& keyp
     // 检测关键点和计算描述子
     akaze->detectAndCompute(image, noArray(), keypoints_akaze, descriptors_akaze);
 
-    // 打印关键点数量
-    cout << "AKAZE关键点数量: " << keypoints_akaze.size() << endl;
-
-    cout << "AKAZE描述子数量: " << descriptors_akaze.rows << endl;
+//    // 打印关键点数量
+//    cout << "AKAZE关键点数量: " << keypoints_akaze.size() << endl;
+//
+//    cout << "AKAZE描述子数量: " << descriptors_akaze.rows << endl;
 
     // 绘制特征点的位置并显示描述子
 //    Mat image_with_keypoints_akaze;
@@ -625,7 +625,49 @@ void merge(cv::Mat img1, cv::Mat img2, cv::Mat T)
             uchar pixel_img1 = transform_img1.at<uchar>(y, x);
             uchar pixel_img2 = img2_transform.at<uchar>(y, x);
 
-            if(static_cast<int>(pixel_img1)<120||static_cast<int>(pixel_img2)<120)
+//           //原不做处理
+
+//            if(static_cast<int>(pixel_img1)==0||static_cast<int>(pixel_img2)==0)
+//            {
+//                continue;
+//            }
+//            if(static_cast<int>(pixel_img1)>static_cast<int>(pixel_img2))
+//            {
+//                merged_image.at<uchar>(y, x) = pixel_img1;
+//            }
+//            else
+//            {
+//                merged_image.at<uchar>(y, x) = pixel_img2;
+//            }
+
+            //图像修正
+//            设置一个阈值:将205+-5的设置为灰色，小于200的设置为0，否则为254
+            if(pixel_img1>210)
+                pixel_img1=254;
+            else if(pixel_img1<200)
+            {
+                if(pixel_img1==125)
+                    pixel_img1=125;
+                else
+                    pixel_img1=0;
+            }
+
+            else
+                pixel_img1=205;
+
+            if(pixel_img2>210)
+                pixel_img2=254;
+            else if(pixel_img2<200)
+            {
+                if(pixel_img2==125)
+                    pixel_img2=125;
+                else
+                    pixel_img2=0;
+            }
+
+            else
+                pixel_img2=205;
+            if(static_cast<int>(pixel_img1)==0||static_cast<int>(pixel_img2)==0)
             {
                 continue;
             }
@@ -755,11 +797,11 @@ int main()
 //    printf("the all map fuison running time is %.6f\n", getCurrentTime() - start_all);
 
 
- // 读取输入图像
+// 读取输入图像
 
-//    //aces
-    Mat image1 = imread("..\\maps\\aces\\aces_4.pgm", IMREAD_GRAYSCALE);
-    Mat image2 = imread("..\\maps\\aces\\aces_7.pgm", IMREAD_GRAYSCALE);
+////    //aces
+//    Mat image1 = imread("..\\maps\\aces\\aces_4.pgm", IMREAD_GRAYSCALE);
+//    Mat image2 = imread("..\\maps\\aces\\aces_7.pgm", IMREAD_GRAYSCALE);
 //    Mat image1 = imread("..\\maps\\aces\\aces_5.pgm", IMREAD_GRAYSCALE);
 //    Mat image2 = imread("..\\maps\\aces\\aces_8.pgm", IMREAD_GRAYSCALE);
     // intel
@@ -776,8 +818,8 @@ int main()
 //     DM
 //    Mat image1 = imread("..\\maps\\DM1\\DM_5.pgm", IMREAD_GRAYSCALE);
 //    Mat image2 = imread("..\\maps\\DM1\\DM_9.pgm", IMREAD_GRAYSCALE);
-//    Mat image1 = imread("..\\maps\\DM1\\DM_3.pgm", IMREAD_GRAYSCALE);
-//    Mat image2 = imread("..\\maps\\DM1\\DM_7.pgm", IMREAD_GRAYSCALE);
+    Mat image1 = imread("..\\maps\\DM1\\DM_3.pgm", IMREAD_GRAYSCALE);
+    Mat image2 = imread("..\\maps\\DM1\\DM_7.pgm", IMREAD_GRAYSCALE);
 //
 
     int num_trials = 100; // 执行次数
@@ -789,16 +831,21 @@ int main()
         double start = getCurrentTime();
 
         // 初始化AKAZE检测器
-        Ptr<AKAZE> akaze = AKAZE::create();
+//        Ptr<AKAZE> akaze = AKAZE::create();
         vector<KeyPoint> keypoints1, keypoints2;
         Mat descriptors1, descriptors2;
-        // 检测关键点和计算描述子
-        akaze->detectAndCompute(image1, noArray(), keypoints1, descriptors1);
-        akaze->detectAndCompute(image2, noArray(), keypoints2, descriptors2);
+
+
+//        // 检测关键点和计算描述子
+//        akaze->detectAndCompute(image1, noArray(), keypoints1, descriptors1);
+//        akaze->detectAndCompute(image2, noArray(), keypoints2, descriptors2);
+
+        detectAKAZEKeypointsAndDescriptors(image1, keypoints1, descriptors1);
+        detectAKAZEKeypointsAndDescriptors(image2, keypoints2, descriptors2);
 
         double start1 = getCurrentTime();
 
-         // 将关键点转换为 raw_data
+        // 将关键点转换为 raw_data
         float* raw_data1 = keypointsToRawData(keypoints1);
         float* raw_data2 = keypointsToRawData(keypoints2);
         double end1 = getCurrentTime();
@@ -807,15 +854,15 @@ int main()
         ClusterAnalysis myClusterAnalysis1;       //Clustering algorithm object declaration.
         ClusterAnalysis myClusterAnalysis2;       //Clustering algorithm object declaration.
 
-        myClusterAnalysis1.Init(raw_data1,DIME_NUM,keypoints1.size(), 10, 4);      //5cm Algorithm initialization.
-        myClusterAnalysis2.Init(raw_data2,DIME_NUM,keypoints2.size(), 10, 4);      //10cm Algorithm initialization.
+        myClusterAnalysis1.Init(raw_data1,DIME_NUM,keypoints1.size(), 13, 3);      //5cm Algorithm initialization.
+        myClusterAnalysis2.Init(raw_data2,DIME_NUM,keypoints2.size(), 13, 3);      //10cm Algorithm initialization.
 
 
         myClusterAnalysis1.DoDBSCANRecursive();                    //Perform GriT-DBSCAN.
         myClusterAnalysis2.DoDBSCANRecursive();                    //Perform GriT-DBSCAN.
 
         double start2 = getCurrentTime();
-         //聚类结果处理
+        //聚类结果处理
         vector< DataPoint > clusteringResults1 = myClusterAnalysis1.getDataSets();
         vector< DataPoint > clusteringResults2 = myClusterAnalysis2.getDataSets();
         //获取聚类结果的簇数量（这里不包含噪音）+1

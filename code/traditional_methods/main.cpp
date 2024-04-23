@@ -78,71 +78,30 @@ void detectKeypointsAndDescriptors(const Mat& image, vector<KeyPoint>& keypoints
 
 //特征匹配
 ////1 粗匹配：暴力匹配
-vector<DMatch> feature_match_ByFLANN(Mat& des1,Mat& des2,double threshold,int flag,int flag1)
+vector<DMatch> feature_match_ByFLANN(Mat& des1,Mat& des2,double threshold,int flag)
 {
     // 对匹配结果进行处理
     std::vector<cv::DMatch> good_matches;
-    if(flag == 1)
+
+    //FLANN
+    if(flag ==1)
     {
-        if(flag1==1)
+        //SIFT /SURF
+        FlannBasedMatcher flann;
+        vector<vector<DMatch>> matches;
+        flann.knnMatch(des1, des2, matches, 2);
+        // 第一步筛选：
+        // 应用比率测试，保留好的匹配
+        for (size_t i = 0; i < matches.size(); ++i)
         {
-            BFMatcher bf(cv::NORM_L2); // 使用欧氏距离进行匹配
-            vector<vector<DMatch>> matches;
-            bf.knnMatch(des1, des2, matches, 2);
-
-
-            // 第一步筛选：
-            // 应用比率测试，保留好的匹配
-            for (size_t i = 0; i < matches.size(); ++i)
+            if (matches[i][0].distance < threshold * matches[i][1].distance)
             {
-                if (matches[i][0].distance < threshold * matches[i][1].distance)
-                {
-                    good_matches.push_back(matches[i][0]);
-                }
+                good_matches.push_back(matches[i][0]);
             }
         }
-        else
-        {
-            BFMatcher bf(NORM_HAMMING);//使用汉明距离
-            vector<vector<DMatch>> matches;
-            bf.knnMatch(des1, des2, matches, 2);
-
-
-            // 第一步筛选：
-            // 应用比率测试，保留好的匹配
-            for (size_t i = 0; i < matches.size(); ++i)
-            {
-                if (matches[i][0].distance < threshold * matches[i][1].distance)
-                {
-                    good_matches.push_back(matches[i][0]);
-                }
-            }
-        }
-
-
-
     }
-    else
-    {
-        //FLANN
-        if(flag1 ==1)
-        {
-            //SIFT /SURF
-            FlannBasedMatcher flann;
-            vector<vector<DMatch>> matches;
-            flann.knnMatch(des1, des2, matches, 2);
-            // 第一步筛选：
-            // 应用比率测试，保留好的匹配
-            for (size_t i = 0; i < matches.size(); ++i)
-            {
-                if (matches[i][0].distance < threshold * matches[i][1].distance)
-                {
-                    good_matches.push_back(matches[i][0]);
-                }
-            }
-        }
 
-    }
+
 
     // 先按照距离对matches中的匹配对进行排序。按照距离的升序对它们进行排序，以使最佳匹配（低距离）
     // 这个距离具体指的是什么？汉明距离吗？
@@ -256,7 +215,7 @@ cv::Mat feature_match_ByRANSAC(cv::Mat img1, std::vector<cv::KeyPoint> kp1, cv::
         cv::drawMatches(img1, kp1, img2, kp2, good_matches, img_matches_ransac, cv::Scalar(0,0,255),cv::Scalar(0,0,255), mask, DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 //        imshow("Matches", img_matches );
 //        imshow("Inlier Matches", img_matches_ransac);
-        show("Matches", img_matches );
+//        show("Matches", img_matches );
         show("Inlier Matches", img_matches_ransac);
         cv::waitKey(0);
         return T_3x3;
@@ -466,6 +425,10 @@ double overlap(Mat img1_before, Mat img2_before, Mat img1_transform, Mat img2_tr
             {
                 overlap_sum++;
                 // 计算对齐程度
+                uchar pixel_img1 = img1_transform.at<uchar>(y, x);
+                uchar pixel_img2 = img2_transform.at<uchar>(y, x);
+
+
                 if ((img1_transform.at<uchar>(y, x) >= 250 || img1_transform.at<uchar>(y, x) <= 5) &&
                         (img2_transform.at<uchar>(y, x) >= 250 || img2_transform.at<uchar>(y, x) <= 5))
                 {
@@ -514,13 +477,15 @@ void merge(cv::Mat img1, cv::Mat img2, cv::Mat T)
     std::cout << "变换矩阵修正后为：\n" << T << std::endl;
     // 对第一张图片进行透视变换
     Mat transform_img1;
-    warpPerspective(img1, transform_img1, T, Size(width, height), INTER_LINEAR, BORDER_CONSTANT, Scalar(125, 125, 125));
-    show("Transform_img1", transform_img1);
+    warpPerspective(img1, transform_img1, T, Size(width, height), INTER_LINEAR, BORDER_CONSTANT, Scalar(205, 205, 205));
+
+
+//    show("Transform_img1", transform_img1);
     // 对齐 img2 左上角和融合后的左上角
     // 用仿射变换实现平移
     Mat img2_transform;
-    warpAffine(img2, img2_transform, t, Size(width, height), INTER_LINEAR, BORDER_CONSTANT, Scalar(125, 125, 125));
-    show("img2_transform", img2_transform);
+    warpAffine(img2, img2_transform, t, Size(width, height), INTER_LINEAR, BORDER_CONSTANT, Scalar(205, 205, 205));
+//    show("img2_transform", img2_transform);
     // 保存 transform_img1 为 PGM 格式
 //    string transform_img1_filename = "transform_img1.pgm";
 //    imwrite(transform_img1_filename, transform_img1);
@@ -532,7 +497,7 @@ void merge(cv::Mat img1, cv::Mat img2, cv::Mat T)
     // 将两张图片并排在一起显示
     Mat connect_image;
     hconcat(transform_img1, img2_transform, connect_image);
-    show("connect_image", connect_image);
+//    show("connect_image", connect_image);
     cv::waitKey(0);
 
 //    计算得分
@@ -554,8 +519,51 @@ void merge(cv::Mat img1, cv::Mat img2, cv::Mat T)
 
             uchar pixel_img1 = transform_img1.at<uchar>(y, x);
             uchar pixel_img2 = img2_transform.at<uchar>(y, x);
+            //原不做处理
 
-            if(static_cast<int>(pixel_img1)<120||static_cast<int>(pixel_img2)<120)
+//            if(static_cast<int>(pixel_img1)==0||static_cast<int>(pixel_img2)==0)
+//            {
+//                continue;
+//            }
+//            if(static_cast<int>(pixel_img1)>static_cast<int>(pixel_img2))
+//            {
+//                merged_image.at<uchar>(y, x) = pixel_img1;
+//            }
+//            else
+//            {
+//                merged_image.at<uchar>(y, x) = pixel_img2;
+//            }
+
+            //图像修正
+//            设置一个阈值:将205+-5的设置为灰色，小于200的设置为0，否则为254
+            if(pixel_img1>210)
+                pixel_img1=254;
+            else if(pixel_img1<200)
+            {
+                if(pixel_img1==125)
+                    pixel_img1=125;
+                else
+                    pixel_img1=0;
+            }
+
+            else
+                pixel_img1=205;
+
+            if(pixel_img2>210)
+                pixel_img2=254;
+            else if(pixel_img2<200)
+            {
+                if(pixel_img2==125)
+                    pixel_img2=125;
+                else
+                    pixel_img2=0;
+            }
+
+            else
+                pixel_img2=205;
+
+
+            if(static_cast<int>(pixel_img1)==0||static_cast<int>(pixel_img2)==0)
             {
                 continue;
             }
@@ -584,11 +592,11 @@ int main()
 
     // 读取输入图像
 //    aces
-    Mat image1 = imread("..\\maps\\aces\\aces_4.pgm", IMREAD_GRAYSCALE);
-    Mat image2 = imread("..\\maps\\aces\\aces_7.pgm", IMREAD_GRAYSCALE);
+//    Mat image1 = imread("..\\maps\\aces\\aces_4.pgm", IMREAD_GRAYSCALE);
+//    Mat image2 = imread("..\\maps\\aces\\aces_7.pgm", IMREAD_GRAYSCALE);
 //    Mat image1 = imread("..\\maps\\aces\\aces_5.pgm", IMREAD_GRAYSCALE);
 //    Mat image2 = imread("..\\maps\\aces\\aces_8.pgm", IMREAD_GRAYSCALE);
-    // intel
+//     intel
 //    Mat image1 = imread("..\\maps\\intel\\intel_5.pgm", IMREAD_GRAYSCALE);
 //    Mat image2 = imread("..\\maps\\intel\\intel_10.pgm", IMREAD_GRAYSCALE);
 //    Mat image1 = imread("..\\maps\\intel\\intel_3.pgm", IMREAD_GRAYSCALE);
@@ -602,8 +610,8 @@ int main()
 //    Mat image2 = imread("..\\maps\\fr079\\fr079_9.pgm", IMREAD_GRAYSCALE);
 
 ////     DM
-//    Mat image1 = imread("..\\maps\\DM1\\DM_5.pgm", IMREAD_GRAYSCALE);
-//    Mat image2 = imread("..\\maps\\DM1\\DM_9.pgm", IMREAD_GRAYSCALE);
+    Mat image1 = imread("..\\maps\\DM1\\DM_5.pgm", IMREAD_GRAYSCALE);
+    Mat image2 = imread("..\\maps\\DM1\\DM_9.pgm", IMREAD_GRAYSCALE);
 
 //    Mat image1 = imread("..\\maps\\DM1\\DM_3.pgm", IMREAD_GRAYSCALE);
 //    Mat image2 = imread("..\\maps\\DM1\\DM_7.pgm", IMREAD_GRAYSCALE);
@@ -612,8 +620,8 @@ int main()
     // 检测关键点和计算描述子
     vector<KeyPoint> keypoints1, keypoints2;
     Mat descriptors1, descriptors2;
-    detectKeypointsAndDescriptors(image1, keypoints1, descriptors1,0);
-    detectKeypointsAndDescriptors(image2, keypoints2, descriptors2,0);
+    detectKeypointsAndDescriptors(image1, keypoints1, descriptors1,3);
+    detectKeypointsAndDescriptors(image2, keypoints2, descriptors2,3);
 
     //特征匹配
     // 使用 feature_match_ByBF 函数进行特征匹配
@@ -622,9 +630,9 @@ int main()
 //    vector<DMatch> matches = feature_match_ByBF(descriptors1, descriptors2,0.80,1);
 
     //SIFT/SURF+FLANN flag=1
-    vector<DMatch> matches = feature_match_ByFLANN(descriptors1, descriptors2,0.75,2,1);
+//    vector<DMatch> matches = feature_match_ByFLANN(descriptors1, descriptors2,0.75,1);
     //ORB/AKAZE+BF flag=2
-//    vector<DMatch> matches = feature_match_ByFLANN(descriptors1, descriptors2,0.80,1,2);
+    vector<DMatch> matches = feature_match_ByBF(descriptors1, descriptors2,0.75,2);
 
     cout << "Number of matches: " << matches.size() << endl;
     //细匹配：RANSAC并得到变换矩阵T

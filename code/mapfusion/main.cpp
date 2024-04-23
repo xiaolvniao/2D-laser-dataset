@@ -18,7 +18,8 @@ using namespace std;
 using namespace cv;
 namespace bg = boost::geometry;
 
-void show(std::string name, cv::Mat img_show) {
+void show(std::string name, cv::Mat img_show)
+{
     float img_resize=0.3;
     cv::Mat img_show_resize;
     cv::resize(img_show, img_show_resize, cv::Size(), img_resize, img_resize);
@@ -35,9 +36,9 @@ void detectAKAZEKeypointsAndDescriptors(const Mat& image, vector<KeyPoint>& keyp
     akaze->detectAndCompute(image, noArray(), keypoints_akaze, descriptors_akaze);
 
     // 打印关键点数量
-    cout << "AKAZE关键点数量: " << keypoints_akaze.size() << endl;
-
-    cout << "AKAZE描述子数量: " << descriptors_akaze.rows << endl;
+//    cout << "AKAZE关键点数量: " << keypoints_akaze.size() << endl;
+//
+//    cout << "AKAZE描述子数量: " << descriptors_akaze.rows << endl;
 
     // 绘制特征点的位置并显示描述子
 //    Mat image_with_keypoints_akaze;
@@ -598,12 +599,12 @@ void merge(cv::Mat img1, cv::Mat img2, cv::Mat T)
     std::cout << "变换矩阵修正后为：\n" << T << std::endl;
     // 对第一张图片进行透视变换
     Mat transform_img1;
-    warpPerspective(img1, transform_img1, T, Size(width, height), INTER_LINEAR, BORDER_CONSTANT, Scalar(125, 125, 125));
+    warpPerspective(img1, transform_img1, T, Size(width, height), INTER_LINEAR, BORDER_CONSTANT, Scalar(205, 205, 205));
 //    imshow("Transform_img1", transform_img1);
     // 对齐 img2 左上角和融合后的左上角
     // 用仿射变换实现平移
     Mat img2_transform;
-    warpAffine(img2, img2_transform, t, Size(width, height), INTER_LINEAR, BORDER_CONSTANT, Scalar(125, 125, 125));
+    warpAffine(img2, img2_transform, t, Size(width, height), INTER_LINEAR, BORDER_CONSTANT, Scalar(205, 205, 205));
 
     // 将两张图片并排在一起显示
     Mat connect_image;
@@ -618,8 +619,7 @@ void merge(cv::Mat img1, cv::Mat img2, cv::Mat T)
     t_3x3.at<double>(2, 2) = 1;
     double scores = overlap(img1, img2, transform_img1, img2_transform, T, t_3x3);
     cout << "最优得分：" <<setprecision(8)<< scores << endl;
-
-    //自定义融合
+//自定义融合
     Mat merged_image = Mat::zeros(transform_img1.size(), transform_img1.type());
     for (int y = 0; y < merged_image.rows; ++y)
     {
@@ -629,8 +629,49 @@ void merge(cv::Mat img1, cv::Mat img2, cv::Mat T)
 
             uchar pixel_img1 = transform_img1.at<uchar>(y, x);
             uchar pixel_img2 = img2_transform.at<uchar>(y, x);
+            //原不做处理
 
-            if(static_cast<int>(pixel_img1)<120||static_cast<int>(pixel_img2)<120)
+//            if(static_cast<int>(pixel_img1)==0||static_cast<int>(pixel_img2)==0)
+//            {
+//                continue;
+//            }
+//            if(static_cast<int>(pixel_img1)>static_cast<int>(pixel_img2))
+//            {
+//                merged_image.at<uchar>(y, x) = pixel_img1;
+//            }
+//            else
+//            {
+//                merged_image.at<uchar>(y, x) = pixel_img2;
+//            }
+
+            //图像修正
+//            设置一个阈值:将205+-5的设置为灰色，小于200的设置为0，否则为254
+            if(pixel_img1>210)
+                pixel_img1=254;
+            else if(pixel_img1<200)
+            {
+                if(pixel_img1==125)
+                    pixel_img1=125;
+                else
+                    pixel_img1=0;
+            }
+
+            else
+                pixel_img1=205;
+
+            if(pixel_img2>210)
+                pixel_img2=254;
+            else if(pixel_img2<200)
+            {
+                if(pixel_img2==125)
+                    pixel_img2=125;
+                else
+                    pixel_img2=0;
+            }
+
+            else
+                pixel_img2=205;
+            if(static_cast<int>(pixel_img1)==0||static_cast<int>(pixel_img2)==0)
             {
                 continue;
             }
@@ -673,10 +714,10 @@ int main()
 //    Mat image1 = imread("..\\maps\\Edmonton\\edmonton_42.pgm", IMREAD_GRAYSCALE);
 //    Mat image2 = imread("..\\maps\\Edmonton\\edmonton_10.pgm", IMREAD_GRAYSCALE);
 //     DM
-//    Mat image1 = imread("..\\maps\\DM1\\DM_5.pgm", IMREAD_GRAYSCALE);
-//    Mat image2 = imread("..\\maps\\DM1\\DM_9.pgm", IMREAD_GRAYSCALE);
-    Mat image1 = imread("..\\maps\\DM1\\DM_3.pgm", IMREAD_GRAYSCALE);
-    Mat image2 = imread("..\\maps\\DM1\\DM_7.pgm", IMREAD_GRAYSCALE);
+    Mat image1 = imread("..\\maps\\DM1\\DM_5.pgm", IMREAD_GRAYSCALE);
+    Mat image2 = imread("..\\maps\\DM1\\DM_9.pgm", IMREAD_GRAYSCALE);
+//    Mat image1 = imread("..\\maps\\DM1\\DM_3.pgm", IMREAD_GRAYSCALE);
+//    Mat image2 = imread("..\\maps\\DM1\\DM_7.pgm", IMREAD_GRAYSCALE);
 
 
 
